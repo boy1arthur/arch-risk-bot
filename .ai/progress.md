@@ -1,22 +1,58 @@
-# 🤖 Arch Risk Bot 개발 진행 현황 (Antigravity & Codex 협업)
+# 🚀 Arch Risk Bot - Startup Progress
 
-이 문서는 Antigravity 에이전트와 Codex 에이전트 간의 작업 동기화를 위한 공유 컨텍스트입니다.
+**Current Status**: Core Engine Porting + Webhook Integration (In-Progress)
+**Last Sync**: 2026-02-13
 
-## 📅 현재 진행 단계: Day 1-3 완료 (핵심 엔진 포팅 및 스캐폴딩)
+## 📊 Development Status
+- **Main Branch**: Baseline monorepo with Turborepo/Probot scaffold.
+- **`feat/ai-engine-core`**: Core engine ported, guardrails implemented, v1 template wired.
+- **Pending**: PR review & merge of `feat/ai-engine-core` to `main`.
 
-### ✅ 완료된 작업 (Antigravity)
-- **모노레포 스캐폴딩**: Turborepo, pnpm workspaces 기반 구조 설정.
-- **웹훅 서버 구축**: `apps/webhook` (Probot 기반 PR 분석 핸들러).
-- **AI 엔진 포팅**: `packages/engine` (Python 분석기, AI 진단, 아키텍처 스캐너).
-- **PR 자동 분석 연동**: Python 구문 오류 및 리팩토링 제안 기능 구현.
+## 🛡️ Locked MVP Guardrails
+1. **Suggestion-Only**: No auto-commits or file modifications. Only PR comments with diff suggestions.
+2. **Changed Files Only**: Analysis is limited to Python files listed in the PR diff.
+3. **Exclusion Rules**: Ignore `node_modules`, `dist`, `build`, `vendor`, `.venv`, `generated`.
+4. **Safety Limits**: Max 20 files, Max 2,000 lines total. Timeout at 10s per AI request.
+5. **Fail-safe**: If limits exceed, post a "Summary-only" warning instead of deep analysis.
 
-### 🔄 진행 중인 작업
-- **에이전트 협업 설정**: Codex와 Antigravity 간의 역할 분담 및 데이터 공유 체계 구축.
+## 📅 Next 7 Days Execution Plan (3 Tasks/Day)
 
-## 💡 Codex에게 요청하는 사항
-- [ ] `CONTRIBUTING.md` 및 `SECURITY.md` 리뷰 및 비공개 연락처(보완 채널) 추가 제안.
-- [ ] 현재 모노레포 구조에 적합한 `.github/workflows` (CI/CD) 초안 작성.
-- [ ] 각 패키지의 `README.md` 보완 및 문서화 지원.
+### Day 1: Finalize Core & Guardrails (Done)
+- [x] Wire v1 Concise Template to Webhook handler.
+- [x] Implement Folder/Line-count Guardrails.
+- [x] Create E2E Demo Scenario & Sample code.
 
----
-*마지막 업데이트: 2026-02-13 03:45 (Antigravity)*
+### Day 2: Environment & Documentation
+- [ ] Draft `docs/github-app-setup.md` (Permissions & Events).
+- [ ] Finalize `docs/mvp-acceptance-checklist.md`.
+- [ ] Push all doc updates and request Codex review on PR.
+
+### Day 3: Local E2E Validation
+- [ ] Run Smee.io local test with `risky_module.py`.
+- [ ] Verify "Large PR" warning behavior.
+- [ ] Fix any AI response parsing bugs (JSON safety).
+
+### Day 4: Production Setup
+- [ ] Finalize `docs/deploy-v0.md` (Railway deployment focus).
+- [ ] Configure Production GitHub App with proper secrets.
+- [ ] Set up basic Health Check endpoint in Webhook server.
+
+### Day 5: Deployment & Integration
+- [ ] Execute Railway deployment.
+- [ ] Verify Webhook delivery in Production logs.
+- [ ] Test integration with a real external repository.
+
+### Day 6: Reliability & Polish
+- [ ] Refine AI prompts for higher quality suggestions.
+- [ ] Implement retry logic for Gemini API temporary failures.
+- [ ] Update README with "Add to GitHub" button & instructions.
+
+### Day 7: MVP Handover & Launch
+- [ ] Run full Acceptance Test Checklist.
+- [ ] Record final demo video/recording.
+- [ ] Merge `feat/ai-engine-core` to `main` and declare V1.0.0-mvp.
+
+## 🤖 Requests for Codex
+- Review the `docs/` folder for clarity and consistency.
+- Generate PR descriptions based on `.ai/progress.md` updates.
+- Monitor for any architectural drift during the porting phase.
