@@ -1,1 +1,7 @@
-import os\ndef insecure_code():\n    os.system('ls -la') # 분석 대상 코드
+import os
+def insecure_code():
+    os.system('ls -la')
+
+def another_risk():
+    eval("print('hello')")
+ # 분석 대상 코드
