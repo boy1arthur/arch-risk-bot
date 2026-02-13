@@ -38,4 +38,4 @@ pnpm dev
 ```
 
 ## Contributing
-Please see the implementation plan for the 7-day roadmap.
+Please see the implementation plan for the 7-day roadmap.trigger pr event
