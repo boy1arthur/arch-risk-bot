@@ -5,7 +5,7 @@ export default (app: Probot) => {
     app.on(["pull_request.opened", "pull_request.synchronize"], async (context) => {
         const { owner, repo } = context.repo();
         const number = context.payload.pull_request.number;
-        app.log.info(`Analyzing PR: ${owner}/${repo}#${number}`);
+        app.log.info(`[ArchRiskBot] Analyzing PR: ${owner}/${repo}#${number}`);
 
         try {
             // 1. Get changed files
@@ -15,8 +15,11 @@ export default (app: Probot) => {
                 pull_number: number,
             });
 
+            app.log.info(`[ArchRiskBot] Found ${files.length} changed files`);
+
             // Guardrail: Max 20 files
             if (files.length > 20) {
+                app.log.warn(`[ArchRiskBot] Large PR detected (${files.length} files). Posting warning.`);
                 await context.octokit.issues.createComment(
                     context.issue({
                         body: `### ⚠️ 대규모 변경 감지 (파일 ${files.length}개)\n변경 사항이 너무 많아 요약 분석만 수행합니다. 구조적 리스크를 줄이기 위해 PR을 작게 나누는 것을 권장합니다.`,
@@ -31,9 +34,12 @@ export default (app: Probot) => {
                 // Guardrail: Skip ignored directories and non-python files
                 if (IGNORE_DIRS.some(dir => file.filename.includes(dir))) continue;
                 if (!file.filename.endsWith(".py")) continue;
-                if (file.status !== "added" && file.status !== "modified") continue;
+                if (file.status !== "added" && file.status !== "modified") {
+                    app.log.info(`[ArchRiskBot] Skipping file ${file.filename} with status ${file.status}`);
+                    continue;
+                }
 
-                app.log.info(`Analyzing Python file: ${file.filename}`);
+                app.log.info(`[ArchRiskBot] Processing Python file: ${file.filename}`);
 
                 // 2. Fetch file content
                 const { data: contentData } = await context.octokit.repos.getContent({
@@ -48,17 +54,23 @@ export default (app: Probot) => {
                     const linesCount = content.split("\n").length;
                     totalProcessedLines += linesCount;
 
+                    app.log.info(`[ArchRiskBot] File ${file.filename} has ${linesCount} lines (Total: ${totalProcessedLines})`);
+
                     // Guardrail: Skip deep analysis if total lines exceed 2,000
                     if (totalProcessedLines > 2000) {
-                        app.log.warn("Total processed lines exceeded 2,000. Skipping deep analysis for remaining files.");
+                        app.log.warn("[ArchRiskBot] Total processed lines exceeded 2,000. Skipping deep analysis for remaining files.");
                         break;
                     }
 
                     // 3. Run analysis
+                    app.log.info(`[ArchRiskBot] Running engine analysis for ${file.filename}`);
                     const analysis = await analyzePythonCode(content, file.filename);
 
                     if (analysis.hasError && analysis.line) {
+                        app.log.info(`[ArchRiskBot] Error/Risk detected in ${file.filename} at line ${analysis.line}`);
+
                         // 4. Diagnose error
+                        app.log.info(`[ArchRiskBot] Calling AI diagnosis for ${file.filename}`);
                         const diagnosis = await diagnoseCodeError(
                             file.filename,
                             analysis.line,
@@ -66,6 +78,8 @@ export default (app: Probot) => {
                             analysis.error || "Unknown error",
                             content
                         );
+
+                        app.log.info(`[ArchRiskBot] Diagnosis complete. Confidence: ${diagnosis.confidence}`);
 
                         // 5. Post comment with New Template v1
                         const commentBody = `
@@ -98,11 +112,14 @@ ${diagnosis.fixedCode}
                                 body: commentBody,
                             })
                         );
+                        app.log.info(`[ArchRiskBot] Posted comment for ${file.filename}`);
+                    } else {
+                        app.log.info(`[ArchRiskBot] No errors/risks found in ${file.filename}`);
                     }
                 }
             }
         } catch (error: any) {
-            app.log.error(`Error during analysis: ${error.message}`);
+            app.log.error(`[ArchRiskBot] Error during analysis: ${error.message}`);
         }
     });
 };
