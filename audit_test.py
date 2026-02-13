@@ -7,4 +7,4 @@ def another_risk():
     import subprocess
     subprocess.run("ls", shell=True)
     exec("print('dangerous')")
- # 분석 대상 코드
+ # 분석 대상 코드 - 최종 확인용
