@@ -53,7 +53,7 @@ function isTextFile(p: string) {
 }
 
 function isSkippableDir(name: string) {
-    return ['node_modules', '.git', '.next', 'dist', 'build', 'out', '.turbo', '__pycache__'].includes(name);
+    return ['node_modules', '.git', '.next', 'dist', 'build', 'out', '.turbo', '__pycache__', 'venv', '.venv'].includes(name);
 }
 
 function suspiciousFolderName(name: string) {
@@ -149,8 +149,8 @@ function resolveImport(fromFile: string, spec: string) {
     const base = path.resolve(path.dirname(fromFile), spec);
     const candidates = [
         base,
-        base + '.ts', base + '.tsx', base + '.js', base + '.jsx', base + '.py',
-        path.join(base, 'index.ts'), path.join(base, 'index.js'), path.join(base, '__init__.py')
+        base + '.py', base + '.ts', base + '.tsx', base + '.js', base + '.jsx',
+        path.join(base, '__init__.py'), path.join(base, 'index.ts'), path.join(base, 'index.js')
     ];
     for (const c of candidates) {
         if (fs.existsSync(c) && fs.statSync(c).isFile()) return c;

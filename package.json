@@ -9,5 +9,9 @@
     },
     "devDependencies": {
         "turbo": "latest"
+    },
+    "dependencies": {
+        "@octokit/auth-app": "^8.2.0",
+        "octokit": "^5.0.5"
     }
 }

@@ -2,6 +2,8 @@ import { Probot } from "probot";
 import { analyzePythonCode, diagnoseCodeError } from "@arch-risk-bot/engine";
 
 export default (app: Probot) => {
+    app.log.info(`[ArchRiskBot] Webhook Path: ${process.env.WEBHOOK_PATH || '/'}`);
+    app.log.info(`[ArchRiskBot] Gemini API Key present: ${!!process.env.GEMINI_API_KEY}`);
     app.on(["pull_request.opened", "pull_request.synchronize"], async (context) => {
         const { owner, repo } = context.repo();
         const number = context.payload.pull_request.number;
@@ -81,30 +83,32 @@ export default (app: Probot) => {
 
                         app.log.info(`[ArchRiskBot] Diagnosis complete. Confidence: ${diagnosis.confidence}`);
 
-                        // 5. Post comment with New Template v1
+                        // 5. Post comment with Architecture Guardrail Template v1
+                        const riskEmoji = analysis.type === 'ArchitectureRisk' ? '🏗️' : '🛡️';
                         const commentBody = `
-### 🔍 Arch Risk Bot 분석 결과
+### ${riskEmoji} Architecture Guardrail 분석 결과
 **발견된 잠재적 리스크: 1개**
-*이 봇은 코드를 자동으로 변경하지 않으며, 개선을 위한 제안만 제공합니다.*
+*이 봇은 아키텍처의 구조적 안정성을 유지하고 기술 부채의 폭발을 방지하는 가드레일 역할을 합니다.*
 
 ---
 
-**[${diagnosis.severity === "error" ? "🔴 Error" : "🟠 Warning"}] ${diagnosis.issue}**
+**[${diagnosis.severity === "error" ? "🔴 Critical" : "🟠 Warning"}] ${diagnosis.issue}**
 - **문제 요약**: ${diagnosis.suggestion.split(".")[0]}.
 
 **📍 Evidence**
 - **위치**: [${file.filename}#L${analysis.line}](https://github.com/${owner}/${repo}/pull/${number}/files#diff-${Buffer.from(file.filename).toString("hex")}R${analysis.line})
+- **유형**: ${analysis.type || "SyntaxError"}
 
-**💡 리팩토링 제안 (Patch Suggestion)**
+**💡 아키텍처 개선 제안 (Structural Suggestion)**
 \`\`\`python
 ${diagnosis.fixedCode}
 \`\`\`
 
 ---
 > **안내**:
-> - 자동 변경 없음 (Suggestion 전용)
-> - 재실행 방법: PR 업데이트 시 자동 재실행
-> - 한계: 정적 분석 및 AI 추론 기반으로 실제 동작과 다를 수 있음
+> - **가드레일 목적**: 대규모 레거시 붕괴 방지 및 모듈화 유지
+> - **재실행**: PR 업데이트 시 자동 재실행
+> - **한계**: 정적 분석 기반으로 아키텍처 방향성에 대한 인사이트를 제공합니다.
             `;
 
                         await context.octokit.issues.createComment(

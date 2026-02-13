@@ -24,14 +24,27 @@ export interface AnalysisResult {
  * @param fileName - Original filename for context
  */
 export async function analyzePythonCode(code: string, fileName: string): Promise<AnalysisResult> {
-    // 1. Risk Scan (Simple Regex based for MVP)
+    // 1. Architecture Health Scan (God Module / Large File)
+    const lines = code.split('\n');
+    if (lines.length > 800) {
+        return {
+            hasError: true,
+            error: `Large File Risk: ${lines.length} lines. 이 파일의 수정은 시스템 전반에 예측 불가능한 영향을 미칠 수 있습니다.`,
+            line: 1,
+            type: 'ProductionRisk',
+            file: fileName
+        };
+    }
+
+    // 2. Risk Scan (Operational & Production Readiness)
     const riskResult = scanForRisks(code, fileName);
     if (riskResult.hasError) {
         return riskResult;
     }
 
-    // 2. Syntax Check
-    const tempFilePath = path.join(tmpdir(), `arch_risk_${randomBytes(4).toString('hex')}_${fileName}`);
+    // 3. Syntax Check
+    const flatFileName = fileName.replace(/[\/\\]/g, '_');
+    const tempFilePath = path.join(tmpdir(), `arch_risk_${randomBytes(4).toString('hex')}_${flatFileName}`);
 
     try {
         fs.writeFileSync(tempFilePath, code);
@@ -72,10 +85,12 @@ export async function analyzePythonCode(code: string, fileName: string): Promise
 
 function scanForRisks(code: string, fileName: string): AnalysisResult {
     const risks = [
-        { pattern: /os\.system\(/, type: 'SecurityRisk', message: 'Insecure use of os.system() detected. Use subprocess.run() with shell=False instead.' },
-        { pattern: /subprocess\.(popen|run|call|check_output)\(.*shell\s*=\s*True/, type: 'SecurityRisk', message: 'Insecure use of subprocess with shell=True detected.' },
-        { pattern: /eval\(/, type: 'SecurityRisk', message: 'Use of eval() detected, which can execute arbitrary code.' },
-        { pattern: /exec\(/, type: 'SecurityRisk', message: 'Use of exec() detected, which can execute arbitrary code.' },
+        { pattern: /os\.system\(/, type: 'SecurityRisk', message: '[보안] os.system() 사용이 감지되었습니다. 외부 공격에 노출될 위험이 있습니다.' },
+        { pattern: /subprocess\.(popen|run|call|check_output)\(.*shell\s*=\s*True/, type: 'SecurityRisk', message: '[보안] shell=True 옵션은 명령어 주입 공격의 통로가 될 수 있습니다.' },
+        { pattern: /eval\(|exec\(/, type: 'SecurityRisk', message: '[보안] 동적 코드 실행 함수 사용은 잠재적인 보안 홀을 형성합니다.' },
+        { pattern: /requests\.(get|post|put|delete|patch)\((?!.*timeout=)/, type: 'ProductionRisk', message: '[운영] 외부 API 호출 시 timeout 설정이 없습니다. 장애 발생 시 서비스가 무한 대기에 빠질 수 있습니다.' },
+        { pattern: /aiohttp\.ClientSession\(\).*(get|post|put|delete|patch)\((?!.*timeout=)/, type: 'ProductionRisk', message: '[운영] 비동기 호출 시 timeout 설정이 없습니다. 시스템 리소스 고갈의 원인이 됩니다.' },
+        { pattern: /(?:api_key|password|secret|token)\s*=\s*['"][a-zA-Z0-9_-]{10,}['"]/, type: 'ProductionRisk', message: '[운영] 민감 정보(API Key/Password)가 코드 내에 하드코딩 되어 있습니다. 보안 사고의 직접적인 원인입니다.' },
     ];
 
     const lines = code.split('\n');

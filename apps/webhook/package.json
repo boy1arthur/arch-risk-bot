@@ -12,7 +12,7 @@
     },
     "dependencies": {
         "probot": "^13.0.0",
-        "@arch-risk-bot/engine": "workspace:*"
+        "archrisk-engine": "workspace:*"
     },
     "devDependencies": {
         "@types/node": "^20.0.0",

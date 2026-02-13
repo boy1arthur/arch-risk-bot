@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BoGum Bot | Architecture Guardrail Scanner</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --bg: #0f172a;
+            --text: #f8fafc;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .hero h1 {
+            font-size: 2.8rem;
+            background: linear-gradient(135deg, #f8fafc 0%, #94a3b8 100%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 15px;
+            line-height: 1.2;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            color: #94a3b8;
+            margin-bottom: 30px;
+        }
+
+        .loading-box {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid #334155;
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 20px;
+            color: #f8fafc;
+            font-weight: 600;
+        }
+
+        .container {
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        p {
+            color: #94a3b8;
+            margin-bottom: 2rem;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            background: #1e293b;
+            padding: 10px;
+            border-radius: 12px;
+            border: 1px solid #334155;
+        }
+
+        input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: white;
+            padding: 10px;
+            font-size: 1rem;
+            outline: none;
+        }
+
+        button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        #result {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 12px;
+            background: #1e293b;
+            display: none;
+            text-align: left;
+        }
+
+        .score {
+            font-size: 4rem;
+            font-weight: 800;
+            margin: 10px 0;
+        }
+
+        .score.status-RED {
+            color: #ef4444;
+            text-shadow: 0 0 40px rgba(239, 68, 68, 0.3);
+        }
+
+        .score.status-YELLOW {
+            color: #f59e0b;
+            text-shadow: 0 0 40px rgba(245, 158, 11, 0.3);
+        }
+
+        .score.status-GREEN {
+            color: #10b981;
+            text-shadow: 0 0 40px rgba(16, 185, 129, 0.3);
+        }
+
+        pre {
+            background: #0f172a;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="hero">
+            <h1>AI가 만든 코드, 진짜 배포해도 괜찮을까? 🤖🚀</h1>
+            <p>GitHub URL 넣으면 30초 안에 <b>배포 준비도 점수(RRS)</b>를 알려드립니다.</p>
+        </div>
+
+        <div class="input-group">
+            <input type="text" id="repoUrl" placeholder="https://github.com/user/repo">
+            <button onclick="startScan()">무료로 검사하기</button>
+        </div>
+
+        <div id="loading" class="loading-box" style="display: none;">
+            분석을 시작합니다... ⏳
+        </div>
+
+        <div id="result"
+            style="display: none; background: #0f172a; border: 1px solid #334155; padding: 40px 20px; border-radius: 20px; text-align: center; margin-top: 30px;">
+            <div id="statusHeader" style="font-weight: 500; font-size: 1.1rem; color: #94a3b8; margin-bottom: 20px;">
+                Release Readiness Score</div>
+            <div id="scoreValue" class="score"
+                style="font-size: 6rem; font-weight: 800; line-height: 1; margin: 20px 0;">--</div>
+            <div id="summaryStatement"
+                style="font-size: 1.4rem; font-weight: 700; color: #f8fafc; margin-bottom: 20px; line-height: 1.4;">--
+            </div>
+
+            <div id="viralHook"
+                style="margin-bottom: 30px; padding: 15px; background: rgba(255, 255, 255, 0.05); border-radius: 12px; font-weight: 600; font-size: 1.1rem; color: #2563eb;">
+                Would you deploy this today? 🚀
+            </div>
+
+            <div id="cliUpsell"
+                style="margin-top: 20px; padding: 20px; background: rgba(37, 99, 235, 0.1); border: 1px dashed #2563eb; border-radius: 12px; text-align: left;">
+                <h4 style="color: #2563eb; margin-top: 0; margin-bottom: 10px;">🛡️ 배포 전 '의식'이 필요하신가요?</h4>
+                <p style="font-size: 0.9rem; color: #cbd5e1; margin-bottom: 15px;">CLI 도구를 사용하면 배포 직전 터미널에서 즉시 최종 점검 루틴을
+                    수행할 수 있습니다.</p>
+                <code
+                    style="display: block; background: #1e293b; padding: 10px; border-radius: 6px; font-size: 0.85rem; margin-bottom: 15px;">npx archrisk check</code>
+                <div style="font-size: 0.85rem; color: #94a3b8;">
+                    ✅ 로컬 프로젝트 즉시 검사<br>
+                    ✅ 본인 AI API 키로 무제한 딥스캔<br>
+                    ✅ 팩트 기반 리팩토링 가이드 생성
+                </div>
+            </div>
+
+            <button onclick="shareResult()"
+                style="margin-top: 30px; background: transparent; border: 1px solid #334155; color: #f8fafc; margin-bottom: 40px; padding: 12px 24px;">이
+                결과 이미지로 공유하기 📤</button>
+
+            <div id="graphContainer" style="display:none; margin-bottom: 40px; text-align: left;">
+                <strong style="display: block; margin-bottom: 10px;">📦 아키텍처 의존성 맵 (Architecture Map)</strong>
+                <img id="graphImg" src="" style="width: 100%; border-radius: 12px; border: 1px solid #334155;">
+            </div>
+
+            <div id="riskSections" style="display:none; text-align: left;">
+                <h3 style="margin-top: 40px; color: #f8fafc; border-bottom: 1px solid #334155; padding-bottom: 10px;">🧾
+                    Pre-Production Report (배포 리스크 감사 결과)</h3>
+                <div style="margin-top: 20px;">
+                    <strong style="color: #ef4444; font-size: 1.1rem; display: block; margin-bottom: 15px;">🔴 서비스 중단 및
+                        보안 권고 (Service & Security)</strong>
+                    <div id="section-HighRisk"></div>
+                </div>
+                <div style="margin-bottom: 25px;">
+                    <strong style="color: #f59e0b; font-size: 1.1rem; display: block; margin-bottom: 15px;">🟡 확장성 및 구조적
+                        결함 (Scalability & Architecture)</strong>
+                    <div id="section-Scalability"></div>
+                </div>
+                <div style="margin-bottom: 25px;">
+                    <strong style="color: #94a3b8; font-size: 1.1rem; display: block; margin-bottom: 15px;">📉 유지보수 및 운영
+                        준비도 (Maintenance & Readiness)</strong>
+                    <div id="section-Maintenance"></div>
+                </div>
+            </div>
+
+            <div id="disclosure"
+                style="margin-top: 30px; padding: 15px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 8px; font-size: 0.95rem; color: #ef4444;">
+                <div style="font-weight: 700; margin-bottom: 5px;">⚠️ 중요 리스크 고지</div>
+                <div id="disclosureText">--</div>
+            </div>
+
+            <div id="upsellSection" style="margin-top: 50px; border-top: 1px solid #334155; padding-top: 40px;">
+                <h3 style="color: #f8fafc; margin-bottom: 15px;">내일도 이 점수가 유지될까요?</h3>
+                <p style="color: #94a3b8; margin-bottom: 25px;">GitHub App을 설치하여 매 커밋마다 아키텍처를 자동으로 감시하고 점수를 관리하세요.</p>
+                <button onclick="location.href='#'" style="background: #2563eb; color: white;">GitHub App 설치하기 (무제한
+                    분석)</button>
+            </div>
+
+            <button style="margin-top: 20px; width: 100%; background: #334155;" onclick="location.reload()">다시 신규
+                검사하기</button>
+        </div>
+        <!-- Section 2: How it Works -->
+        <div id="how-it-works"
+            style="margin-top: 80px; text-align: left; background: rgba(30, 41, 59, 0.3); padding: 40px; border-radius: 20px; border: 1px solid #334155;">
+            <h2 style="color: #f8fafc; margin-bottom: 30px;">어떻게 동작하나요? 🛠️</h2>
+            <div style="display: grid; grid-template-columns: 1fr; gap: 30px;">
+                <div>
+                    <h4 style="color: #2563eb; margin-bottom: 10px;">1. Web 즉시 스캔</h4>
+                    <p style="margin: 0; font-size: 0.95rem;">GitHub URL로 30초 만에 공짜 건강검진 점수를 확인하세요.</p>
+                </div>
+                <div>
+                    <h4 style="color: #2563eb; margin-bottom: 10px;">2. CLI 심층 진단</h4>
+                    <p style="margin: 0; font-size: 0.95rem;">내 터미널에서 `npx archrisk`로 깊이 있는 AI 리팩토링 조언을 받으세요.</p>
+                </div>
+                <div>
+                    <h4 style="color: #2563eb; margin-bottom: 10px;">3. GitHub App 지속 관리</h4>
+                    <p style="margin: 0; font-size: 0.95rem;">PR마다 자동으로 점수를 체크하고 고품질 아키텍처를 유지하세요.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer" style="margin-top: 100px; padding-bottom: 50px; color: #475569; font-size: 0.85rem;">
+            © 2026 ArchRisk Bot. Developed with Viral UX Strategy.
+        </div>
+    </div>
+
+    <script>
+        async function startScan() {
+            const repoUrl = document.getElementById('repoUrl').value;
+            if (!repoUrl) return alert('URL을 입력해주세요.');
+
+            const loading = document.getElementById('loading');
+            loading.style.display = 'block';
+            document.getElementById('result').style.display = 'none';
+
+            try {
+                const res = await fetch('/scan', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ repoUrl })
+                });
+
+                if (res.status === 429) {
+                    const error = await res.json();
+                    alert(error.message);
+                    loading.style.display = 'none';
+                    return;
+                }
+
+                const { jobId } = await res.json();
+                pollStatus(jobId);
+            } catch (e) {
+                alert('분석 요청 중 오류가 발생했습니다.');
+                loading.style.display = 'none';
+            }
+        }
+
+        async function pollStatus(jobId) {
+            const loading = document.getElementById('loading');
+            try {
+                const res = await fetch(`/status/${jobId}`);
+                const { status, queuePosition, error } = await res.json();
+
+                if (status === 'completed') {
+                    const resultRes = await fetch(`/result/${jobId}`);
+                    const resultData = await resultRes.json();
+                    loading.style.display = 'none';
+                    showResult(resultData);
+                } else if (status === 'failed') {
+                    alert('분석 실패: ' + error);
+                    loading.style.display = 'none';
+                } else {
+                    loading.innerText = status === 'pending'
+                        ? `대기 중... (대기 순번: ${queuePosition}번) ⏳`
+                        : `AI가 아키텍처를 세밀하게 감사 중입니다... 🔄`;
+                    setTimeout(() => pollStatus(jobId), 2000);
+                }
+            } catch (e) {
+                console.error('Polling failed', e);
+                setTimeout(() => pollStatus(jobId), 2000);
+            }
+        }
+
+        function showResult(data) {
+            const resDiv = document.getElementById('result');
+            resDiv.style.display = 'block';
+
+            const scoreVal = document.getElementById('scoreValue');
+            scoreVal.innerText = data.score;
+            scoreVal.className = 'score status-' + (data.score < 70 ? 'RED' : data.score < 90 ? 'YELLOW' : 'GREEN');
+
+            const summary = document.getElementById('summaryStatement');
+            if (data.score < 70) {
+                summary.innerText = "🔴 Not Ready for Deployment";
+            } else if (data.score < 90) {
+                summary.innerText = "🟡 Needs Attention";
+            } else {
+                summary.innerText = "🟢 Ready for Production";
+            }
+
+            // Show risk sections if there are findings
+            if (data.findings && data.findings.length > 0) {
+                document.getElementById('riskSections').style.display = 'block';
+            }
+            if (data.graphUrl) {
+                graphContainer.style.display = 'block';
+                graphImg.src = data.graphUrl;
+            } else {
+                graphContainer.style.display = 'none';
+            }
+
+            const sections = {
+                'Security': document.getElementById('section-HighRisk'),
+                'Service Interruption': document.getElementById('section-HighRisk'),
+                'Scalability': document.getElementById('section-Scalability'),
+                'Maintenance': document.getElementById('section-Maintenance')
+            };
+
+            // Clear sections
+            Object.values(sections).forEach(s => s.innerHTML = '<div style="color: #475569; font-size: 0.9rem;">감지된 항목 없음</div>');
+
+            if (data.findings && data.findings.length > 0) {
+                data.findings.forEach(f => {
+                    const target = sections[f.category] || sections['Maintenance'];
+                    if (target.innerHTML.includes('감지된 항목 없음')) target.innerHTML = '';
+
+                    target.innerHTML += `
+                        <div style="margin-bottom: 25px; border-left: 4px solid #334155; padding-left: 15px; background: rgba(30, 41, 59, 0.5); padding: 20px; border-radius: 0 12px 12px 0;">
+                            <div style="font-weight: 800; font-size: 1.1rem; color: #f8fafc; margin-bottom: 12px;">🚫 ${f.title}</div>
+                            <div style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 15px;">File: ${f.file}${f.line > 0 ? ` (Line ${f.line})` : ''}</div>
+                            
+                            <div style="margin-bottom: 12px;">
+                                <span style="color: #94a3b8; font-size: 0.8rem; font-weight: 700; text-transform: uppercase;">• Evidence</span>
+                                <div style="color: #cbd5e1; font-size: 0.95rem; margin-top: 4px; line-height: 1.5;">${f.evidence}</div>
+                            </div>
+
+                            <div style="margin-bottom: 12px;">
+                                <span style="color: #2563eb; font-size: 0.8rem; font-weight: 700; text-transform: uppercase;">• Standard</span>
+                                <div style="color: #cbd5e1; font-size: 0.95rem; margin-top: 4px; line-height: 1.5;">${f.standard}</div>
+                            </div>
+                            
+                            <div style="margin-bottom: 12px;">
+                                <span style="color: #ef4444; font-size: 0.8rem; font-weight: 700; text-transform: uppercase;">• Impact</span>
+                                <div style="color: #cbd5e1; font-size: 0.95rem; margin-top: 4px; line-height: 1.5;">${f.impact}</div>
+                            </div>
+                            
+                            <div style="margin-bottom: 12px;">
+                                <span style="color: #10b981; font-size: 0.8rem; font-weight: 700; text-transform: uppercase;">• Action</span>
+                                <div style="color: #cbd5e1; font-size: 0.95rem; margin-top: 4px; line-height: 1.5;">${f.action}</div>
+                            </div>
+
+                            <div style="margin-bottom: 12px;">
+                                <span style="color: #8b5cf6; font-size: 0.8rem; font-weight: 700; text-transform: uppercase;">• When it becomes a real problem</span>
+                                <div style="color: #cbd5e1; font-size: 0.95rem; margin-top: 4px; font-style: italic;">${f.whenItMatters}</div>
+                            </div>
+                            
+                            <a href="${f.reference}" target="_blank" style="display: inline-block; margin-top: 10px; color: #2563eb; font-size: 0.85rem; text-decoration: none; font-weight: 600; border-bottom: 1px dashed #2563eb;">
+                                🔗 Industry Reference
+                            </a>
+                        </div>
+                    `;
+                });
+            }
+
+            document.getElementById('disclosureText').innerText = data.disclosure || '';
+            document.getElementById('ctaText').innerText = data.cta || '';
+        }
+        function shareResult() {
+            const score = document.getElementById('scoreValue').innerText;
+            const text = `Release Readiness Score: ${score}/95 🏁\nWould you deploy this today? 🚀\n#ArchRisk #ReleaseRitual #PreProductionReport\n${window.location.href}`;
+
+            if (navigator.share) {
+                navigator.share({ title: 'ArchRisk Audit', text: text, url: window.location.href });
+            } else {
+                navigator.clipboard.writeText(text);
+                alert('결과 링크가 클립보드에 복사되었습니다. 소셜 미디어에 공유해보세요!');
+            }
+        }
+    </script>
+</body>
+
+</html>

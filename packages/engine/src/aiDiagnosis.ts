@@ -61,16 +61,19 @@ async function callGeminiAPI(prompt: string): Promise<DiagnosisResult> {
         throw new Error('Failed to parse JSON from Gemini response');
     } catch (error: any) {
         console.error('[Brain] Gemini API error:', error.message);
-        return mockDiagnosis();
+        return mockDiagnosis('AI Diagnosis limited - using fallback', error.message);
     }
 }
 
-function mockDiagnosis(): DiagnosisResult {
+function mockDiagnosis(
+    issue = 'API key not configured - using mock diagnosis',
+    suggestion = 'Set GEMINI_API_KEY in environment variables'
+): DiagnosisResult {
     return {
         severity: 'error',
-        issue: 'API key not configured - using mock diagnosis',
-        suggestion: 'Set GEMINI_API_KEY in environment variables',
-        fixedCode: '# Configure API key to get AI diagnosis',
+        issue: issue,
+        suggestion: suggestion,
+        fixedCode: '# Gemini API quota exceeded or key missing. Using static fallback analysis.',
         confidence: 0.0
     };
 }
