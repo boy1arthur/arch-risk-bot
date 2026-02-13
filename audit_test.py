@@ -4,4 +4,6 @@ def insecure_code():
 
 def another_risk():
     eval("print('hello')")
+    import subprocess
+    subprocess.run("ls", shell=True)
  # 분석 대상 코드
