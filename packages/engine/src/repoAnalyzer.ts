@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { execSync } from 'child_process';
 import { analyzePythonCode, AnalysisResult } from './analyzer.js';
+import { analyzeJsTsCode } from './jsAnalyzer.js';
 import { depsScan } from './archScanner.js';
 
 export interface RepoAnalysisResult {
@@ -300,6 +301,33 @@ export async function analyzeRepository(repoPath: string, resultsDir?: string): 
 
             if (result.hasError) {
                 const details = getAuditDetails('RR-SEC-001', result.type || 'Error', result.error || 'Unknown Issue');
+                findings.push({
+                    file: relativePath,
+                    line: result.line || 0,
+                    type: result.type || 'Error',
+                    ...details
+                });
+
+                if (result.type === 'SecurityRisk') criticalCount++;
+            }
+        } catch (e) {
+            console.error(`Error analyzing ${f}:`, e);
+        }
+    }
+
+    // 2.1 Code Level Analysis (JS/TS logic)
+    for (const f of files.filter(f => /\.(js|ts|jsx|tsx)$/.test(f))) {
+        try {
+            const code = fs.readFileSync(f, 'utf8');
+            const relativePath = path.relative(repoPath, f);
+
+            // Logging Check (Simple console.log check is in rules, but here specific frameworks?)
+            // We rely on rules for now.
+
+            const result = await analyzeJsTsCode(code, relativePath);
+
+            if (result.hasError) {
+                const details = getAuditDetails('RR-SEC-002', result.type || 'Error', result.error || 'Unknown Issue'); // Use SEC-002 for JS? Or reuse.
                 findings.push({
                     file: relativePath,
                     line: result.line || 0,

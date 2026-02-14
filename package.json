@@ -1,6 +1,11 @@
 {
     "name": "arch-risk-bot-monorepo",
     "private": true,
+    "packageManager": "pnpm@8.15.5",
+    "workspaces": [
+        "packages/*",
+        "apps/*"
+    ],
     "scripts": {
         "dev": "turbo run dev",
         "build": "turbo run build",
