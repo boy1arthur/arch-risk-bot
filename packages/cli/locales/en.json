@@ -1,0 +1,43 @@
+{
+    "header": {
+        "title": "ARCHRISK: THE PRE-DEPLOY RITUAL",
+        "running": "Running Pre-Deploy Ritual...",
+        "complete": "Ritual Complete. Run this again before your next deploy."
+    },
+    "scan": {
+        "scanning_path": "Scanning project at: {path}",
+        "static_engine": "Running static audit engine (Zero API Cost)...",
+        "audit_complete": "Audit Complete!"
+    },
+    "audit": {
+        "start": "Starting Architecture Deep Audit using {provider}...",
+        "analyze": "Analyzing architectural patterns and technical debt against production standards...",
+        "complete": "Architecture Deep Audit Complete!",
+        "debt_impact": "Technical Debt Impact",
+        "summary": "Strategic Summary",
+        "guides": "Architecture Refactoring Guides",
+        "issue": "Issue",
+        "solution": "Solution",
+        "recommendation": "Recommendation: Run this audit monthly to keep technical debt in check."
+    },
+    "score": {
+        "label": "Score",
+        "status": "Status",
+        "needs_attention": "Needs Attention",
+        "good": "Good",
+        "critical": "Critical"
+    },
+    "findings": {
+        "title": "Findings",
+        "file": "File",
+        "evidence": "Evidence",
+        "impact": "Impact",
+        "action": "Action"
+    },
+    "tips": {
+        "deep_scan": "Tip: Run archrisk audit for AI-powered deep analysis."
+    },
+    "footer": {
+        "deploy_question": "Would you deploy this today? 🚀"
+    }
+}

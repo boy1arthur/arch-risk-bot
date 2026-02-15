@@ -3,7 +3,7 @@ import { simpleGit } from "simple-git";
 import * as tmp from "tmp";
 import * as fs from "fs-extra";
 import * as path from "path";
-import { analyzeRepository } from "@arch-risk-bot/engine";
+import { analyzeRepository } from "archrisk-engine";
 
 const app = express();
 app.use(express.json());
@@ -45,7 +45,7 @@ async function processQueue() {
     try {
         await git.clone(job.repoUrl, tmpDir.name, ["--depth", "1"]);
         const resultsDir = path.join(process.cwd(), "public", "results");
-        const result = await analyzeRepository(tmpDir.name, resultsDir);
+        const result = await analyzeRepository(tmpDir.name, { resultsDir });
 
         job.status = 'completed';
         job.result = { ...result, repoUrl: job.repoUrl, timestamp: new Date().toISOString() };

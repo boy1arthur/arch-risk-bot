@@ -1,14 +1,15 @@
 {
   "name": "archrisk",
-  "version": "0.1.8",
-  "description": "Code Release Readiness Platform – The Pre-Deploy Ritual.",
+  "version": "0.1.9",
+  "description": "Pre-deploy code health check in one command.",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
     "archrisk": "./dist/index.js"
   },
   "files": [
-    "dist"
+    "dist",
+    "locales"
   ],
   "scripts": {
     "build": "tsc",

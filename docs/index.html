@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ArchRisk: The Pre-Deploy Ritual</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="script.js"></script>
+    <meta name="description" content="Pre-deploy code health check in one command. Catch risks before they reach production.">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">ArchRisk</div>
+            <nav class="lang-switch">
+                <a href="index.html" id="lang-en" onclick="setLang('en')">EN</a>
+                <span style="color: #333; margin: 0 0.5rem">/</span>
+                <a href="ko.html" id="lang-ko" onclick="setLang('ko')">KO</a>
+            </nav>
+        </header>
+
+        <section class="hero">
+            <h1>The Pre-Deploy<br>Ritual</h1>
+            <p class="subtitle">Catch deployment risks before they reach production.<br>Zero API cost. Runs in seconds.</p>
+            
+            <div class="cta-group">
+                <a href="https://github.com/boy1arthur/arch-risk-bot" class="btn btn-primary">Get Started</a>
+                <a href="#demo" class="btn btn-secondary">View Demo</a>
+            </div>
+        </section>
+
+        <section id="demo" class="terminal">
+            <div class="line"><span class="cmd">npx archrisk check .</span></div>
+            <div class="line output">Running Pre-Deploy Ritual...</div>
+            <div class="line output">Scanning project at: /my-app</div>
+            <div class="line"><br></div>
+            <div class="line success">Audit Complete!</div>
+            <div class="line output">-----------------------------------------</div>
+            <div class="line output">Score: <span class="error">5 / 95</span></div>
+            <div class="line output">Status: <span class="error">🔴 Not Ready</span></div>
+            <div class="line output">-----------------------------------------</div>
+            <div class="line"><br></div>
+            <div class="line output">Findings (3):</div>
+            <div class="line output">[1] <span class="error">Missing Automated Tests</span></div>
+            <div class="line output">[2] <span class="error">Missing CI Pipeline</span></div>
+            <div class="line output">[3] <span class="error">Project Hygiene Check Failed</span></div>
+            <div class="line"><br></div>
+            <div class="line output">> Would you deploy this today? 🚀</div>
+        </section>
+
+        <section class="features">
+            <div class="feature-card">
+                <h3>⚡ Zero Config</h3>
+                <p>Runs immediately with <code>npx</code>. No confusing configuration files required to start.</p>
+            </div>
+            <div class="feature-card">
+                <h3>🌐 Multi-Language</h3>
+                <p>Supports English and Korean out of the box. Automatically detects your system locale.</p>
+            </div>
+            <div class="feature-card">
+                <h3>🧠 AI Ready</h3>
+                <p>Optional Deep Audit mode powered by Gemini/GPT for architectural insights.</p>
+            </div>
+        </section>
+
+        <footer>
+            <div class="slogan">> Would you deploy this today? 🚀</div>
+            <p style="margin-top: 1rem">&copy; 2026 ArchRisk. Open Source.</p>
+        </footer>
+    </div>
+</body>
+</html>

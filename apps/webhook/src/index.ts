@@ -1,5 +1,5 @@
 import { Probot } from "probot";
-import { analyzePythonCode, diagnoseCodeError } from "@arch-risk-bot/engine";
+import { analyzePythonCode, diagnoseCodeError } from "archrisk-engine";
 
 export default (app: Probot) => {
     app.log.info(`[ArchRiskBot] Webhook Path: ${process.env.WEBHOOK_PATH || '/'}`);

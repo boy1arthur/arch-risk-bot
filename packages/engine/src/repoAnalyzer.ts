@@ -42,153 +42,39 @@ export interface RepoAnalysisResult {
 /**
  * 3-Tier Business Audit Translation with Standard IDs
  */
-export function getAuditDetails(id: string, type: string, issue: string): { id: string; title: string; category: RepoAnalysisResult['findings'][0]['category']; evidence: string; standard: string; impact: string; action: string; reference: string; whenItMatters: string } {
+import { LOCALES } from './i18n/locales.js';
+
+export function getAuditDetails(id: string, type: string, issue: string, lang: 'en' | 'ko' = 'en'): { id: string; title: string; category: RepoAnalysisResult['findings'][0]['category']; evidence: string; standard: string; impact: string; action: string; reference: string; whenItMatters: string } {
     const commonFields = { id };
+    const messages = LOCALES[lang] || LOCALES['en'];
+    let details: any = messages['DEFAULT'];
 
-    if (id === 'RR-SEC-001' || type === 'SecurityRisk') {
-        return {
-            ...commonFields,
-            title: "보안 취약점 위험 (Security Vulnerability)",
-            category: 'Security',
-            evidence: issue,
-            standard: "OWASP Top 10 A03:2021 – Injection",
-            impact: "외부 공격자가 시스템 권한을 탈취하거나 민감 정보를 유출할 수 있는 조건이 형성됩니다.",
-            action: `
-# Action: 격리 및 환경변수 사용
-subprocess.run(..., shell=False) # 권장
-# 또는 .env 파일 사용
-import os
-SECRET = os.getenv('MY_SECRET')
-`,
-            reference: "https://docs.python.org/3/library/subprocess.html#security-considerations",
-            whenItMatters: "배포 즉시 자동화된 스캐너나 공격자에 의해 탐지될 수 있습니다."
-        };
-    }
-
-    if (id === 'RR-TEST-001') {
-        return {
-            ...commonFields,
-            title: "자동화 테스트 부재 (Missing Automated Tests)",
-            category: 'Service Interruption',
-            evidence: "tests/ 디렉토리 또는 pytest/unittest 관련 설정을 찾을 수 없습니다.",
-            standard: "pytest Framework Documentation",
-            impact: "코드 변경 시 기존 기능이 파괴되었는지 확인할 방법이 없어, 배포 후 장애 발생 확률이 높아집니다.",
-            action: `
-# Action: Create tests/test_smoke.py
-def test_health_check():
-    assert True  # Basic sanity check
-`,
-            reference: "https://docs.pytest.org/",
-            whenItMatters: "팀원이 2명 이상으로 늘어나거나 배포 주기가 빨라질 때."
-        };
-    }
-
-    if (id === 'RR-CI-001') {
-        return {
-            ...commonFields,
-            title: "배포 자동화 파이프라인 부재 (Missing CI Pipeline)",
-            category: 'Service Interruption',
-            evidence: "GitHub Actions (.github/workflows/*.yml) 또는 CI 설정 파일이 없습니다.",
-            standard: "GitHub Actions Documentation",
-            impact: "사람의 수동 배포 과정에서 실수가 발생할 수 있으며, 일관된 배포 상태를 보장할 수 없습니다.",
-            action: `
-# Action: Create .github/workflows/ci.yml
-name: CI
-on: [push]
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - run: npm test
-`,
-            reference: "https://docs.github.com/en/actions",
-            whenItMatters: "배포 빈도가 주 2회 이상으로 증가할 때."
-        };
-    }
-
-    if (id === 'RR-OPS-001') {
-        return {
-            ...commonFields,
-            title: "운영 기본 위생 체크 실패 (Project Hygiene)",
-            category: 'Service Interruption',
-            evidence: issue, // Consolidated list will be passed here
-            standard: "12-Factor App / Docker Documentation",
-            impact: "개발 환경과 운영 환경의 불일치로 인해 '내 컴퓨터에서는 되는데 서버에서는 안 되는' 문제가 발생합니다.",
-            action: `
-# Checklist to Fix:
-1. Create 'Dockerfile'
-2. Create '.gitignore' (use gitignore.io)
-3. Create 'requirements.txt' or 'package.json'
-4. Create '.env.example'
-`,
-            reference: "https://12factor.net/",
-            whenItMatters: "신규 입사자 온보딩 또는 서버 이관 시."
-        };
-    }
-
-    if (id === 'RR-LOG-001') {
-        return {
-            ...commonFields,
-            title: "로깅 설정 미흡 (Insufficient Logging)",
-            category: 'Maintenance',
-            evidence: "코드 내에서 로깅 설정(logging, loguru 등)이 발견되지 않았습니다.",
-            standard: "Python Logging Cookbook",
-            impact: "장애 발생 시 원인을 추적할 수 있는 데이터가 없어 해결 시간이 길어집니다.",
-            action: `
-# Action: Python Logging Setup
-import logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-logger.info("Server started")
-`,
-            reference: "https://docs.python.org/3/howto/logging-cookbook.html",
-            whenItMatters: "운영 중 알 수 없는 500 에러가 발생했을 때."
-        };
-    }
-
-    if (id === 'RR-DEP-001' || type === 'CircularDependency') {
-        return {
-            ...commonFields,
-            title: "구조적 의존성 결함 (Structural Dependency Issue)",
-            category: 'Scalability',
-            evidence: issue,
-            standard: "Clean Architecture: Dependency Rule",
-            impact: "모듈 간 결합도가 높아져 유지보수가 어려워지고, 사이드 이펙트가 발생하기 쉽습니다.",
-            action: "상호 참조하는 모듈을 분리하거나 공통 모듈로 추출하세요.",
-            reference: "https://refactoring.guru/design-patterns",
-            whenItMatters: "프로젝트 규모가 커질수록 리팩토링 비용이 기하급수적으로 증가합니다."
-        };
-    }
-
-    if (id === 'RR-LINT-001' || type === 'GodModule') {
-        return {
-            ...commonFields,
-            title: "거대 모듈 감지 (God Module)",
-            category: 'Maintenance',
-            evidence: issue,
-            standard: "Clean Code: Functions",
-            impact: "단일 파일의 책임이 과도하여 변경 시 영향 범위를 예측하기 어렵습니다.",
-            action: "책임에 따라 파일을 분리하세요 (Separation of Concerns).",
-            reference: "https://pypi.org/project/flake8/",
-            whenItMatters: "기능 추가 시마다 버그가 발생할 때."
-        };
+    if (messages[id as keyof typeof messages]) {
+        details = messages[id as keyof typeof messages];
+    } else if (type === 'SecurityRisk') { // Fallback for general security type if ID not matched
+        details = messages['RR-SEC-001'];
+    } else if (type === 'CircularDependency') {
+        details = messages['RR-DEP-001'];
+    } else if (type === 'GodModule') {
+        details = messages['RR-LINT-001'];
     }
 
     return {
         ...commonFields,
-        title: "기타 잠재적 리스크 (Other Potential Risks)",
-        category: 'Maintenance',
-        evidence: issue,
-        standard: "General Coding Best Practices",
-        impact: "잠재적인 버그나 유지보수 어려움이 있을 수 있습니다.",
-        action: "해당 코드를 리뷰하고 리팩토링을 고려하세요.",
-        reference: "#",
-        whenItMatters: "지속적인 코드 품질 저하가 우려될 때."
+        title: details.title,
+        category: details.category as any,
+        evidence: details.evidence || issue, // Use predefined evidence if exists, else dynamic issue
+        standard: details.standard,
+        impact: details.impact,
+        action: details.action,
+        reference: details.reference,
+        whenItMatters: details.whenItMatters
     };
 }
 
-export async function analyzeRepository(repoPath: string, resultsDir?: string): Promise<RepoAnalysisResult> {
+export async function analyzeRepository(repoPath: string, options?: { lang?: 'en' | 'ko', resultsDir?: string }): Promise<RepoAnalysisResult> {
+    const lang = options?.lang || 'en';
+    const resultsDir = options?.resultsDir;
     const files: string[] = [];
     const IGNORE_DIRS = ["node_modules", ".git", "dist", "build", "venv", ".venv", "__pycache__"];
 
@@ -220,7 +106,7 @@ export async function analyzeRepository(repoPath: string, resultsDir?: string): 
     const hasTests = fs.readdirSync(repoPath, { withFileTypes: true })
         .some(d => d.isDirectory() && /tests?|spec/i.test(d.name));
     if (!hasTests) {
-        const details = getAuditDetails('RR-TEST-001', 'ProductionRisk', '');
+        const details = getAuditDetails('RR-TEST-001', 'ProductionRisk', '', lang);
         findings.push({
             file: 'Repository Root',
             line: 0,
@@ -234,7 +120,7 @@ export async function analyzeRepository(repoPath: string, resultsDir?: string): 
     const hasCI = fs.readdirSync(repoPath, { withFileTypes: true })
         .some(d => d.isDirectory() && /(\.github|\.circleci|jenkins|gitlab)/i.test(d.name));
     if (!hasCI) {
-        const details = getAuditDetails('RR-CI-001', 'ProductionRisk', '');
+        const details = getAuditDetails('RR-CI-001', 'ProductionRisk', '', lang);
         findings.push({
             file: 'Repository Root',
             line: 0,
@@ -266,7 +152,7 @@ export async function analyzeRepository(repoPath: string, resultsDir?: string): 
 
     if (hygieneMissing.length > 0) {
         const evidenceBlock = "\n" + hygieneMissing.join("\n");
-        const details = getAuditDetails('RR-OPS-001', 'ProductionRisk', evidenceBlock);
+        const details = getAuditDetails('RR-OPS-001', 'ProductionRisk', evidenceBlock, lang);
         findings.push({
             file: 'Repository Root',
             line: 0,
@@ -292,7 +178,7 @@ export async function analyzeRepository(repoPath: string, resultsDir?: string): 
 
             // God Module Check (>500 lines)
             if (lines.length > 500) {
-                const details = getAuditDetails('RR-LINT-001', 'GodModule', `File length: ${lines.length} lines`);
+                const details = getAuditDetails('RR-LINT-001', 'GodModule', `File length: ${lines.length} lines`, lang);
                 findings.push({ file: relativePath, line: 0, type: 'ProductionRisk', ...details });
                 operationalGapCount++;
             }
@@ -300,7 +186,7 @@ export async function analyzeRepository(repoPath: string, resultsDir?: string): 
             const result = await analyzePythonCode(code, relativePath);
 
             if (result.hasError) {
-                const details = getAuditDetails('RR-SEC-001', result.type || 'Error', result.error || 'Unknown Issue');
+                const details = getAuditDetails('RR-SEC-001', result.type || 'Error', result.error || 'Unknown Issue', lang);
                 findings.push({
                     file: relativePath,
                     line: result.line || 0,
@@ -327,7 +213,7 @@ export async function analyzeRepository(repoPath: string, resultsDir?: string): 
             const result = await analyzeJsTsCode(code, relativePath);
 
             if (result.hasError) {
-                const details = getAuditDetails('RR-SEC-002', result.type || 'Error', result.error || 'Unknown Issue'); // Use SEC-002 for JS? Or reuse.
+                const details = getAuditDetails('RR-SEC-002', result.type || 'Error', result.error || 'Unknown Issue', lang); // Use SEC-002 for JS? Or reuse.
                 findings.push({
                     file: relativePath,
                     line: result.line || 0,
@@ -343,7 +229,7 @@ export async function analyzeRepository(repoPath: string, resultsDir?: string): 
     }
 
     if (!hasLogging && files.filter(f => f.endsWith('.py')).length > 0) {
-        const details = getAuditDetails('RR-LOG-001', 'ProductionRisk', '');
+        const details = getAuditDetails('RR-LOG-001', 'ProductionRisk', '', lang);
         findings.push({ file: 'Repository Root', line: 0, type: 'ProductionRisk', ...details });
         operationalGapCount++;
     }
@@ -351,7 +237,7 @@ export async function analyzeRepository(repoPath: string, resultsDir?: string): 
     // 3. Dependency Scan (Scalability -15)
     const { adj, cycles } = depsScan(repoPath);
     for (const cycle of cycles) {
-        const details = getAuditDetails('RR-DEP-001', 'CircularDependency', `Cycle: ${cycle.join(' -> ')}`);
+        const details = getAuditDetails('RR-DEP-001', 'CircularDependency', `Cycle: ${cycle.join(' -> ')}`, lang);
         findings.push({
             file: cycle[0],
             line: 0,
@@ -408,7 +294,7 @@ export async function analyzeRepository(repoPath: string, resultsDir?: string): 
             operationalGaps: operationalGapCount
         },
         graphUrl,
-        disclosure: `배포 전 감사가 완료되었습니다. 발견된 리스크들은 실제 운영 환경에서 예기치 못한 서비스 중단이나 데이터 손실을 야기할 수 있는 항목들입니다.`,
-        cta: `배포 루틴 자동화를 위해 GitHub App을 설치하고 지속적인 배포 준비도(Release Readiness)를 관리하세요.`
+        disclosure: LOCALES[lang]?.DISCLOSURE || LOCALES['en'].DISCLOSURE,
+        cta: LOCALES[lang]?.CTA || LOCALES['en'].CTA
     };
 }

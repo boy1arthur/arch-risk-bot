@@ -10,14 +10,22 @@ import fs from 'fs-extra';
 import * as dotenv from 'dotenv';
 import chalk from 'chalk';
 
+import { initI18n } from './i18n/index.js';
+
 dotenv.config();
+
+const langFlagIndex = process.argv.indexOf("--lang");
+const cliLang = langFlagIndex !== -1 ? process.argv[langFlagIndex + 1] : undefined;
+
+initI18n(cliLang);
 
 const program = new Command();
 
 program
     .name('archrisk')
     .description('Code Release Readiness Platform – The Pre-Deploy Ritual.')
-    .version('0.1.6')
+    .version('0.1.9')
+    .option('--lang <lang>', 'Set language (en/ko)')
     .action(async () => {
         // If no command is provided, show the welcome ritual
         const action = await showMainMenu();

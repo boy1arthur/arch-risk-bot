@@ -1,0 +1,204 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;700&display=swap');
+
+:root {
+    --bg-color: #050505;
+    --card-bg: #111;
+    --text-color: #e5e5e5;
+    --muted-color: #888;
+    --primary-color: #3b82f6; /* Blue for reliability */
+    --accent-color: #22c55e;  /* Green for success */
+    --danger-color: #ef4444;  /* Red for risks */
+    --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: var(--font-sans);
+    line-height: 1.6;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem;
+    width: 100%;
+}
+
+/* Header */
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 2rem 0;
+    margin-bottom: 3rem;
+    border-bottom: 1px solid #222;
+}
+
+.logo {
+    font-weight: 800;
+    font-size: 1.5rem;
+    letter-spacing: -0.05em;
+    background: linear-gradient(135deg, #fff 0%, #888 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.lang-switch a {
+    color: var(--muted-color);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: color 0.2s;
+}
+
+.lang-switch a:hover, .lang-switch a.active {
+    color: var(--text-color);
+}
+
+/* Hero */
+.hero {
+    text-align: center;
+    margin-bottom: 5rem;
+}
+
+h1 {
+    font-size: 3.5rem;
+    line-height: 1.1;
+    letter-spacing: -0.04em;
+    margin-bottom: 1rem;
+    background: linear-gradient(to right, #fff, #999);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.subtitle {
+    font-size: 1.25rem;
+    color: var(--muted-color);
+    margin-bottom: 2rem;
+    font-weight: 400;
+}
+
+.cta-group {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 2rem;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.btn-primary {
+    background: var(--text-color);
+    color: var(--bg-color);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255,255,255,0.2);
+}
+
+.btn-secondary {
+    background: #222;
+    color: var(--text-color);
+    border: 1px solid #333;
+}
+
+.btn-secondary:hover {
+    background: #333;
+    border-color: #444;
+}
+
+/* Terminal Preview */
+.terminal {
+    background: #1e1e1e;
+    border-radius: 12px;
+    padding: 1.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+    margin: 2rem auto;
+    max-width: 800px;
+    text-align: left;
+    border: 1px solid #333;
+    position: relative;
+    overflow: hidden;
+}
+
+.terminal::before {
+    content: ""; /* Scanline effect */
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+    background-size: 100% 2px, 3px 100%;
+    pointer-events: none;
+    opacity: 0.4;
+}
+
+.cmd { color: var(--text-color); }
+.cmd::before { content: "$ "; color: var(--muted-color); }
+.output { color: var(--muted-color); }
+.success { color: var(--accent-color); }
+.error { color: var(--danger-color); }
+.blue { color: var(--primary-color); }
+
+/* Features */
+.features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+    margin: 4rem 0;
+}
+
+.feature-card {
+    background: var(--card-bg);
+    padding: 2rem;
+    border-radius: 12px;
+    border: 1px solid #222;
+}
+
+.feature-card h3 {
+    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+}
+
+.feature-card p {
+    color: var(--muted-color);
+    font-size: 0.95rem;
+}
+
+/* Footer */
+footer {
+    text-align: center;
+    padding: 3rem 0;
+    margin-top: auto;
+    border-top: 1px solid #222;
+    color: var(--muted-color);
+    font-size: 0.9rem;
+}
+
+.slogan {
+    margin-top: 1rem;
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+@media (max-width: 600px) {
+    h1 { font-size: 2.5rem; }
+    .hero { margin-bottom: 3rem; }
+    .features { grid-template-columns: 1fr; }
+}
