@@ -1,6 +1,7 @@
 {
     "name": "arch-risk-bot-monorepo",
     "private": true,
+    "homepage": "https://boy1arthur.github.io/arch-risk-bot",
     "packageManager": "pnpm@8.15.5",
     "workspaces": [
         "packages/*",
