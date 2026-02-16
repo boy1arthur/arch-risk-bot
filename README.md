@@ -1,4 +1,5 @@
-# 🛡️ archrisk
+<img width="178" height="62" alt="image" src="https://github.com/user-attachments/assets/69d821c4-2e63-46fa-a57e-a9dd24a619dc" />
+
 
 🌐 **Official Website**: [https://boy1arthur.github.io/arch-risk-bot](https://boy1arthur.github.io/arch-risk-bot)
 
